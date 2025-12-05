@@ -1480,29 +1480,35 @@ def main():
         print(f"Welcome to chat-export v{__version__}")
         print("----------------------------------------")
         print("Select the WhatsApp chat export ZIP file you want to convert to HTML.")
-        success = False
-        try:
-            selected_zip_file = browse_zip_file()
-            if not selected_zip_file:
-                raise FileNotFoundError("No file selected.")
-            print(f"Processing selected file: {selected_zip_file}...")
-            chat_export = ChatExport(selected_zip_file, base_output_dir=args.output_dir, embed_media=args.embed_media)
-            chat_export.process_chat()
-            print(f'Written: {", ".join([str(p.absolute()) for p in chat_export.renderer.get_generated_files()])}')
-            print("Done.")
-            open_in_browser = input("Would you like to open them in the browser? [Y/n]: ").strip().lower()
-            if open_in_browser != 'n':
-                for file in reversed(chat_export.renderer.get_generated_files()):
-                    open_html_file_in_browser(file.absolute())
-            success = True
+        success = True
+        another_file = True
 
-        except FileNotFoundError as e:
-            print(f"Error: {e}")
-        except ValueError as e:
-            print(f"Error: {e}")
-        except Exception as e:
-            print(f"An unexpected error occurred: {e}")
-            print(traceback.format_exc())
+        while another_file:
+            try:
+                selected_zip_file = browse_zip_file()
+                if not selected_zip_file:
+                    raise FileNotFoundError("No file selected.")
+                print(f"Processing selected file: {selected_zip_file}...")
+                chat_export = ChatExport(selected_zip_file, base_output_dir=args.output_dir, embed_media=args.embed_media)
+                chat_export.process_chat()
+                print(f'Written: {", ".join([str(p.absolute()) for p in chat_export.renderer.get_generated_files()])}')
+                print("Done.")
+                open_in_browser = input("Would you like to open them in the browser? [Y/n]: ").strip().lower()
+                if open_in_browser != 'n':
+                    for file in reversed(chat_export.renderer.get_generated_files()):
+                        open_html_file_in_browser(file.absolute())
+                another_file = input("Would you like to convert another WhatsApp chat export ZIP file? [Y/n]").strip().lower() != 'n'
+
+            except FileNotFoundError as e:
+                print(f"Error: {e}")
+                success = False
+            except ValueError as e:
+                print(f"Error: {e}")
+                success = False
+            except Exception as e:
+                print(f"An unexpected error occurred: {e}")
+                print(traceback.format_exc())
+                success = False
 
         if success and input("Do you like the tool and want to buy me a coffee? [y/N]: ").strip().lower() == 'y':
             webbrowser.open(donate_link)
